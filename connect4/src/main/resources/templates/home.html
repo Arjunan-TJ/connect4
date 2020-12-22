@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+    xmlns:th="http://www.thymeleaf.org" 
+    xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+<meta charset="ISO-8859-1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<title>Connect4 game</title>
+</head>
+<style>
+	.center{
+		margin: auto;
+		padding: 10px;
+		text-align: center;
+	}
+	#gamepart{
+		display:none;
+		text-align:center;
+		padding: 10px;
+		margin: auto;
+	}
+	.table{
+		width:30%;
+		max-width:100%;
+		margin-bottom:20px;
+	}
+</style>
+<body style="background-color:powderblue;">
+	<div class="center">
+		<h1>Welcome to Connect 4</h1>
+		<h2>Click new game to enter new game</h2>
+		<button type="button" class="btn btn-primary" onclick="startGame()">New Game</button>
+	</div>
+	
+	<div id="gamepart">
+		<h3>Enter column number (0 to 6) to drop coin</h3>
+		<h5>Current player is</h5><input type="text" id="currentplayer" readonly>
+		<br>
+		<br>
+		<table border = "1" id = "myTable" class="table table-bordered" style="background-color:orange;margin-left:auto;margin-right:auto;">
+			
+		</table>
+		<input type="text" id = "column">
+		<button type="button" class="btn btn-primary" onclick="onGame()">Submit</button>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<br>
+		<div>
+			<h4 style="text-align:left;">Click new game button twice to reset the game</h4>
+		</div>
+	</div>
+	
+	
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script>
+		function startGame(){
+			var x = document.getElementById("gamepart");
+			if(x.style.display ==="none"){
+				x.style.display = "block";
+				$(document).ready(function(){
+					var Table = document.getElementById("myTable");
+					Table.innerHTML = "";
+					$.ajax({url:"/newGame", success: function(myArray){
+						$("#myTable").append($('<tr height="30px"><th>'+'C0'+'</th><th>'+'C1'+'</th><th>'+'C2'+'</th><th>'+'C3'+'</th><th>'+'C4'+'</th><th>'+'C5'+'</th><th>'+'C6'+'</th></tr>'))
+						for(var i=0;i<myArray.length;i++){
+							var row = $('<tr height="30px"><td>' + myArray[i][0]+ '</td><td>' + myArray[i][1] + '</td><td>' + myArray[i][2] + '</td><td>'+ myArray[i][3]+ '</td><td>' + myArray[i][4] + '</td><td>'+ myArray[i][5] + '</td><td>'+ myArray[i][6] + '</td></tr>')
+							$("#myTable").append(row);
+						}
+					}});
+				});
+				$('#currentplayer').val("Y");
+			}else{
+				x.style.display = "none";
+			}
+		}
+		
+		function onGame(){
+			var val = document.getElementById("column").value;
+			$.ajax({
+				type:'POST',
+				url:"/onGame",
+				data:{val},
+				success: function(value){
+					if (value == "invalid column"){
+						viewGame();
+						alert("invalid value of column");
+					}else if(value == "Red won"){
+						viewGame();
+						$('#currentplayer').val(" ");
+						alert("Winner is Red")
+					}else if(value == "Yellow won"){
+						viewGame();
+						$('#currentplayer').val(" ");
+						alert("Winner is Yellow");
+					}else if(value == "Tie game"){
+						viewGame();
+						$('#currentplayer').val(" ");
+						alert("game tie");
+					}else{
+						if(document.getElementById("currentplayer").value == "R"){
+							$('#currentplayer').val("Y");
+						}else if(document.getElementById("currentplayer").value =="Y"){
+							$('#currentplayer').val("R");
+						}
+						viewGame();
+					}
+				}
+			});
+		}
+		
+		function viewGame(){
+			var Table = document.getElementById("myTable");
+			Table.innerHTML = "";
+			$.ajax({
+				type:'GET',
+				url: '/viewGame',
+				success: function(myarray){
+					$("#myTable").append($('<tr height="30px"><th>'+'C0'+'</th><th>'+'C1'+'</th><th>'+'C2'+'</th><th>'+'C3'+'</th><th>'+'C4'+'</th><th>'+'C5'+'</th><th>'+'C6'+'</th></tr>'))
+					for(var i=0;i<myarray.length;i++){
+				    	var row = $('<tr height="30px"><td>' + myarray[i][0]+ '</td><td>' + myarray[i][1] + '</td><td>' + myarray[i][2] + '</td><td>'+ myarray[i][3]+ '</td><td>' + myarray[i][4] + '</td><td>'+ myarray[i][5] + '</td><td>'+ myarray[i][6] + '</td></tr>');
+				    	$("#myTable").append(row);
+				    }
+				}
+			});
+			$('#column').val("");
+		}
+		
+		window.onload = function(){
+			document.getElementById("gamepart").style.display = "none";
+		}
+	</script>
+</body>
+</html>
